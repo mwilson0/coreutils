@@ -8,7 +8,6 @@
 // based on cp from GNU Coreutils 8.2. No warranty.
 // License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
 
-
 int leftover=0;
 int q=0, v=0;
 
