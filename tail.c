@@ -5,7 +5,7 @@
 #include<unistd.h>
 
 // tail clone 0.1. matthew wilson. july 2015. 
-// based on cp from GNU Coreutils 8.2. No warranty.
+// based on tail from GNU Coreutils 8.2. No warranty.
 // License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
 
 int leftover=0;
