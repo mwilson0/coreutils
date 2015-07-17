@@ -4,7 +4,7 @@
 #include<string.h>
 #include<unistd.h>
 
-// cat clone 0.1. matthew wilson. july 2015. 
+// cat clone 0.1.1. matthew wilson. july 2015. 
 // based on cat from GNU Coreutils 8.23. 
 // currently accepts files on command line to cat. stdin in the future.
 // License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
@@ -21,17 +21,14 @@ char* items[999];
 // existing files now in items[y]
 
 for (x=0; x<leftover; x++) {
-
-if (access(argvv[x], F_OK|R_OK)==-1) {
-	printf("no such file: %s\n", argvv[x]);
-}
-
-else {
-	items[y]=malloc(strlen(argvv[x])+1);
-	strcpy(items[y], argvv[x]);
-	y++;
-}
-
+	if (access(argvv[x], F_OK|R_OK)==-1) {
+		printf("no such file: %s\n", argvv[x]);
+	}
+	else {
+		items[y]=malloc(strlen(argvv[x])+1);
+		strcpy(items[y], argvv[x]);
+		y++;
+	}
 }
 
 int linecnt=0; // lines of each file
@@ -44,31 +41,36 @@ int blnk=0;
 for (x=0; x<y; x++) {
 	inputfile=fopen(items[x], "r");
 		while (fgets(line, sizeof line, inputfile)!=NULL) {
-		lineitems[linecnt]=strdup(line);
-		if (b==1) {
-			if (strcmp(lineitems[linecnt], "\n")==0) {
-				blnk++;
-				if (e==1) {
-					printf("$");
-				}		
-				printf("\n");
-				continue;
-			}
-		}
-		//remove newline
-		lineitems[linecnt][strlen(lineitems[linecnt])-1]='\0';
-		if (b==1 && e==1) {
-		printf("%6d  %s $\n", metalinecnt, lineitems[linecnt]); }
-		else if (e==1 &&n==0) {
-		printf("%s $\n", lineitems[linecnt]); }
-		else if (e==1 && n==1) {
-		printf("%6d  %s $\n", metalinecnt, lineitems[linecnt]); }
-		else if (n==1 || b==1) {
-                printf("%6d  %s\n", metalinecnt, lineitems[linecnt]); }
-		else {
-		printf("%s\n", lineitems[linecnt]); }
-		linecnt++;
-		metalinecnt++;
+			lineitems[linecnt]=strdup(line);
+				if (b==1) {
+					if (strcmp(lineitems[linecnt], "\n")==0) {
+						blnk++;
+							if (e==1) {
+								printf("$");
+							}		
+						printf("\n");
+						continue;
+					}
+				}
+			//remove newline
+			lineitems[linecnt][strlen(lineitems[linecnt])-1]='\0';
+				if (b==1 && e==1) {
+					printf("%6d  %s $\n", metalinecnt, lineitems[linecnt]); 
+				}
+				else if (e==1 && n==0) {
+					printf("%s$\n", lineitems[linecnt]); 
+				}
+				else if (e==1 && n==1) {
+					printf("%6d  %s$\n", metalinecnt, lineitems[linecnt]); 
+				}
+				else if (n==1 || b==1) {
+                			printf("%6d  %s\n", metalinecnt, lineitems[linecnt]); 
+				}
+				else {
+					printf("%s\n", lineitems[linecnt]); 
+				}
+			linecnt++;
+			metalinecnt++;
 		}
 	fclose(inputfile);
 }
@@ -98,9 +100,9 @@ int index;
 
 while ((optc = getopt_long (argc, argv, "nEb", long_options, (int *) 0)) !=EOF) {
 	switch (optc) {
-	   case 0:
+	    case 0:
 		break; 
-	   case 'n':
+	    case 'n':
 	        n=1;
 		break;
 	    case 'E':
