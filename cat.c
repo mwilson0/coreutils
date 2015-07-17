@@ -55,7 +55,7 @@ for (x=0; x<y; x++) {
 			//remove newline
 			lineitems[linecnt][strlen(lineitems[linecnt])-1]='\0';
 				if (b==1 && e==1) {
-					printf("%6d  %s $\n", metalinecnt, lineitems[linecnt]); 
+					printf("%6d  %s$\n", metalinecnt, lineitems[linecnt]); 
 				}
 				else if (e==1 && n==0) {
 					printf("%s$\n", lineitems[linecnt]); 
