@@ -7,7 +7,7 @@
 #include<sys/types.h>
 #include<string.h>
 
-// who clone 0.1. matthew wilson. june 2015. 
+// who clone 0.1.1. matthew wilson. june, july 2015. 
 // who clone from spec as used in GNU coreutils 8.23. No warranty. 
 // License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
 
@@ -29,6 +29,7 @@ int usercount=0;
 struct utmp *ii;
 time_t logintime_raw;
 time_t boottime_raw;
+
 setutent();
 
 // number of logged in users. -q flag runs alone, thus following logic
@@ -38,12 +39,13 @@ if (q==1) {
 			printf("%s ", ii->ut_user);
 			usercount++;
 		}
-
 	}
+
 printf("\n# users=%d\n", usercount);
 endutent();
 exit(0);
 }
+
 if (a==1) {
         while ((ii=getutent()) !=NULL) {
 		char tempbuf[99]; // used to remove newline from ctime
@@ -70,9 +72,11 @@ if (a==1) {
                 	printf("  %s %5d (%s)\n", tempbuf, ii->ut_pid, ii->ut_host);
 		}
 	}
+
 endutent();
 exit(0);
 }
+
 else {
 	while ((ii=getutent()) !=NULL) {
 		// runlevel
@@ -97,18 +101,20 @@ else {
 				logintime_raw=ii->ut_time;
 				strcpy(tempbuf, ctime(&logintime_raw));
 				tempbuf[strlen(tempbuf)-1]='\0';
+				
 				if (u==1) {
 					printf("%s %5d (%s)\n", tempbuf, ii->ut_pid, ii->ut_host);
 				}
 				else {
 					printf("%s (%s)\n", tempbuf, ii->ut_host);
 				}
-			
 			}
 		}
 	}
+
 endutent();
 }
+
 exit(0);
 }
 
@@ -133,9 +139,9 @@ int index;
 
 while ((optc = getopt_long (argc, argv, "abqru", long_options, (int *) 0)) !=EOF) {
 	switch (optc) {
-	   case 0:
+	    case 0:
 		break; 
-	   case 'a':
+	    case 'a':
 	        a=1;
 		break;
 	    case 'b':
@@ -162,14 +168,16 @@ while ((optc = getopt_long (argc, argv, "abqru", long_options, (int *) 0)) !=EOF
 if (argc==1) {
 	thefunc(argc, argv);
 }
-//re-position arg vectors after removing flags
+
 else if (argc>1) {
 	for (index=optind; index<argc; index++) {
 		;
 	}
+	
 	argc -= optind;
 	argv += optind;
 	leftover=index-optind;
+	
 	if (leftover>=1) {
 		usage();
 	}
