@@ -10,7 +10,7 @@
 #include<sys/stat.h>
 #include<dirent.h>
 
-// chown clone 0.1. matthew wilson. june 2015. 
+// chown clone 0.1.1. matthew wilson. june, july 2015. 
 // based on chown from GNU Coreutils 8.23. 
 // License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
 
@@ -50,14 +50,14 @@ for (i=1; i<leftover; i++) {
 	j++;
 }
 
-if (j==0) {
+if (j == 0) {
 	printf("chown: missing operand after '%s'\n", argvv[0]);
 	usage();
 }
 
 // look at argvv[0]. see if in format- username: or :group
 
-if (argvv[0][strlen(argvv[0])-1]==':') {
+if (argvv[0][strlen(argvv[0])-1] == ':') {
 	// now check username
 	int len=strlen(argvv[0]);
 	argvv[0][len-1]='\0';
@@ -69,7 +69,7 @@ if (argvv[0][strlen(argvv[0])-1]==':') {
 	nontokenuser=1;
 }
 
-else if (argvv[0][0]==':') {
+else if (argvv[0][0] == ':') {
 	// now check groupname
 	grname=&argvv[0][1];
 	if ((gr=getgrnam(grname)) == NULL) {
@@ -83,13 +83,12 @@ else if (argvv[0][0]==':') {
 
 else {
 	delimsearch=strchr(argvv[0], ':'); //search string
-	if (delimsearch==NULL) {
-		if ((pw=getpwnam(argvv[0]))==NULL) {
+	if (delimsearch == NULL) {
+		if ((pw=getpwnam(argvv[0])) == NULL) {
 			printf("invalid user '%s'\n", argvv[0]);	
 			exit(1);
 		}
 	}
-
 	else {
 		//tokenize the user:group
 		uname=strtok(argvv[0], delim);
@@ -98,7 +97,6 @@ else {
 				printf("invalid user '%s'\n", uname);
 				exit(1);
 			}
-
 			if ((gr=getgrnam(grname)) == NULL) {
 				printf("invalid group '%s'\n", grname);
 				exit(1);
@@ -133,99 +131,103 @@ for (x=0; x<j; x++) {
 // if dirs and if r=1, go into dirs and chown each file inside
 
 for (x=0; x<counter; x++) {
-stat(newitems[x], &fileStat);
+	stat(newitems[x], &fileStat);
 
-// using format of :group
-if ((delimsearch==NULL&&grouper==1) && (S_ISREG (fileStat.st_mode))) {
-	chown(newitems[x], -1, gr->gr_gid);
-}
-else if ((delimsearch==NULL&&grouper==1) && (S_ISDIR (fileStat.st_mode))) {
-if (r==1) {
-	strcat(newitems[x], "/");
-	pDir=opendir(newitems[x]);
-	while ((pDirent=readdir(pDir)) !=NULL) {
-	if (strcmp(pDirent->d_name, ".")==0 || strcmp(pDirent->d_name, "..")==0) 		{ continue; }
-	diritems[y]=malloc(strlen(pDirent->d_name)+1);
-	strcpy(diritems[y], pDirent->d_name);
-	concatitems[y]=malloc(1+strlen(newitems[x])+strlen(diritems[y]));
-	strcpy(concatitems[y], newitems[x]);
-	strcat(concatitems[y], diritems[y]);
-	chown(concatitems[y], -1, gr->gr_gid);
-	y++;
+	// using format of :group
+	if ((delimsearch == NULL && grouper == 1) && (S_ISREG (fileStat.st_mode))) {
+		chown(newitems[x], -1, gr->gr_gid);
 	}
-chown(newitems[x], -1, gr->gr_gid);
-closedir(pDir);
-}
-
-else {
-	chown(newitems[x], -1, gr->gr_gid);
-}
-}
-
-// using format of user: or user
-else if (((delimsearch==NULL&&nontokenuser==1 || delimsearch==NULL )) && (S_ISREG (fileStat.st_mode))) {
-	chown(newitems[x], pw->pw_uid, -1);
-}
-
-else if (((delimsearch==NULL&&nontokenuser==1 || delimsearch==NULL )) && (S_ISDIR (fileStat.st_mode))) {
-
-if (r==1) {
-	strcat(newitems[x], "/");
-	pDir=opendir(newitems[x]);
-	while ((pDirent=readdir(pDir)) !=NULL) {
-	if (strcmp(pDirent->d_name, ".")==0 || strcmp(pDirent->d_name, "..")==0) 		{ continue; }
-	diritems[y]=malloc(strlen(pDirent->d_name)+1);
-	strcpy(diritems[y], pDirent->d_name);
-	concatitems[y]=malloc(1+strlen(newitems[x])+strlen(diritems[y]));
-	strcpy(concatitems[y], newitems[x]);
-	strcat(concatitems[y], diritems[y]);
-	chown(concatitems[y], pw->pw_uid, -1);
-	y++;
+	else if ((delimsearch == NULL && grouper == 1) && (S_ISDIR (fileStat.st_mode))) {
+		if (r == 1) {
+			strcat(newitems[x], "/");
+			pDir=opendir(newitems[x]);
+			while ((pDirent=readdir(pDir)) != NULL) {
+				if (strcmp(pDirent->d_name, ".") == 0 || 
+				    strcmp(pDirent->d_name, "..") == 0) { 
+					continue; 
+				}	
+				diritems[y]=malloc(strlen(pDirent->d_name)+1);
+				strcpy(diritems[y], pDirent->d_name);
+				concatitems[y]=malloc(1+strlen(newitems[x])+strlen(diritems[y]));
+				strcpy(concatitems[y], newitems[x]);
+				strcat(concatitems[y], diritems[y]);
+				chown(concatitems[y], -1, gr->gr_gid);
+				y++;
+			}
+			chown(newitems[x], -1, gr->gr_gid);
+			closedir(pDir);	
+		}
+		else {
+			chown(newitems[x], -1, gr->gr_gid);
+		}
 	}
-chown(newitems[x], pw->pw_uid, -1);
-closedir(pDir);
-}
 
-else {
-	chown(newitems[x], pw->pw_uid, -1);
-}
-}
-
-// using format of user:group
-if (delimsearch!=NULL && (S_ISREG (fileStat.st_mode))) {
-	chown(newitems[x], pw->pw_uid, gr->gr_gid);
-}
-
-else if (delimsearch!=NULL && (S_ISDIR (fileStat.st_mode))) {
-if (r==1) {
-	strcat(newitems[x], "/");
-	pDir=opendir(newitems[x]);
-	while ((pDirent=readdir(pDir)) !=NULL) {
-	if (strcmp(pDirent->d_name, ".")==0 || strcmp(pDirent->d_name, "..")==0) 		{ continue; }
-	diritems[y]=malloc(strlen(pDirent->d_name)+1);
-	strcpy(diritems[y], pDirent->d_name);
-	concatitems[y]=malloc(1+strlen(newitems[x])+strlen(diritems[y]));
-	strcpy(concatitems[y], newitems[x]);
-	strcat(concatitems[y], diritems[y]);
-	chown(concatitems[y], pw->pw_uid, gr->gr_gid);
-	y++;
+	// using format of user: or user
+	else if (((delimsearch == NULL && nontokenuser == 1 || delimsearch == NULL )) && 
+		 (S_ISREG (fileStat.st_mode))) {
+		chown(newitems[x], pw->pw_uid, -1);
 	}
-chown(newitems[x], pw->pw_uid, gr->gr_gid);
-closedir(pDir);
-}
 
-else {
-	chown(newitems[x], pw->pw_uid, gr->gr_gid);
-}
-}
+	else if (((delimsearch == NULL && nontokenuser == 1 || delimsearch == NULL )) && 
+		 (S_ISDIR (fileStat.st_mode))) {
+		if (r == 1) {
+			strcat(newitems[x], "/");
+			pDir=opendir(newitems[x]);
+			while ((pDirent=readdir(pDir)) != NULL) {
+				if (strcmp(pDirent->d_name, ".") == 0 || 
+				     strcmp(pDirent->d_name, "..") == 0) { 
+					continue; 
+				}
+				diritems[y]=malloc(strlen(pDirent->d_name)+1);
+				strcpy(diritems[y], pDirent->d_name);
+				concatitems[y]=malloc(1+strlen(newitems[x])+strlen(diritems[y]));
+				strcpy(concatitems[y], newitems[x]);
+				strcat(concatitems[y], diritems[y]);
+				chown(concatitems[y], pw->pw_uid, -1);
+				y++;
+			}
+			chown(newitems[x], pw->pw_uid, -1);
+			closedir(pDir);
+		}
+		else {
+			chown(newitems[x], pw->pw_uid, -1);
+		}
+	}
 
+	// using format of user:group
+	if (delimsearch != NULL && (S_ISREG (fileStat.st_mode))) {
+		chown(newitems[x], pw->pw_uid, gr->gr_gid);
+	}
+	else if (delimsearch != NULL && (S_ISDIR (fileStat.st_mode))) {
+		if (r == 1) {
+			strcat(newitems[x], "/");
+			pDir=opendir(newitems[x]);
+			while ((pDirent=readdir(pDir)) != NULL) {
+				if (strcmp(pDirent->d_name, ".") == 0 || 
+		    		     strcmp(pDirent->d_name, "..") == 0) { 
+					continue; 
+				}
+				diritems[y]=malloc(strlen(pDirent->d_name)+1);
+				strcpy(diritems[y], pDirent->d_name);
+				concatitems[y]=malloc(1+strlen(newitems[x])+strlen(diritems[y]));
+				strcpy(concatitems[y], newitems[x]);
+				strcat(concatitems[y], diritems[y]);
+				chown(concatitems[y], pw->pw_uid, gr->gr_gid);
+				y++;
+			}
+			chown(newitems[x], pw->pw_uid, gr->gr_gid);
+			closedir(pDir);
+		}
+		else {
+			chown(newitems[x], pw->pw_uid, gr->gr_gid);
+		}
+	}
 } // for loop ends here
 
 exit(0);
 }
 
-static struct option const long_options[] = 
-{
+static struct option const long_options[] = {
 	{"recursive", no_argument, 0, 'R'}, 
     	{0, 0, 0, 0}			
 };
@@ -249,7 +251,7 @@ while ((optc = getopt_long (argc, argv, "R", long_options, (int *) 0)) !=EOF) {
 	   case '?':
 		usage();
 		break;
-	    default:	
+	   default:	
 		usage();
 		break;
 	}
@@ -261,11 +263,10 @@ if (argc==1) {
 }
 
 else if (argc>1) {
-	//re-position arg vectors after removing flags
 	for (index=optind; index<argc; index++) {
 		;
 	}
-
+	
 	argc -= optind;
 	argv += optind;
 	leftover=index-optind;
@@ -275,9 +276,9 @@ else if (argc>1) {
 		usage();
 	}
 
-else {
+	else {
 	thefunc(argc, argv);
-}
+	}
 
 }
 
