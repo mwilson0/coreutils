@@ -122,12 +122,12 @@ if (flag_help) {
 	usage();
 }
 
-if (argc==1) {
+if (argc == 1) {
 	printf("cp: missing file operand\n");
 	usage();
 }
 
-else if (argc>1) {
+else if (argc > 1) {
 	for (index=optind; index<argc; index++) {
 		;
 	}
@@ -136,14 +136,14 @@ else if (argc>1) {
 	argv += optind;
 	leftover=index-optind;
 
-	if (leftover==1) {
+	if (leftover == 1) {
 		printf("cp: missing destination file operand after '%s'\n", argv[0]);
 		usage();
 	}
-	if (leftover==2) {
+	if (leftover == 2) {
 		thefunc(argc, argv);
 	}
-	if (leftover>2) {
+	if (leftover > 2) {
 		usage();
 	}
 
