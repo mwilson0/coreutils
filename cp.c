@@ -9,7 +9,7 @@
 #include<time.h>
 #define BUF_SIZE 9999
 
-// cp clone 0.1. matthew wilson. july 2015. 
+// cp clone 0.1.1. matthew wilson. july 2015. 
 // based on cp from GNU Coreutils 8.2. No warranty.
 // License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
 
@@ -17,8 +17,6 @@ int leftover=0;
 int i=0, v=0, u=0;
 
 thefunc(int argcc, char*argvv[]) {
-printf("i=%d v=%d u=%d\n", i, v, u);
-
 int x;
 struct stat fileStat;
 time_t raw[2];
@@ -30,14 +28,15 @@ int sourcefile, destfile;
 // test source file
 sourcefile=open(argvv[0], O_RDONLY);
 
-if (sourcefile==-1) {
+if (sourcefile == -1) {
 	printf("cannot stat '%s': No such file or directory\n", argvv[0]);
 	exit(1);
 }
 
 // check if dest file exists
 if (access(argvv[1], F_OK|R_OK|W_OK) != -1) {
-	if (i==1 & u!=1) { // interactive mode
+	if (i == 1 & u != 1) { 
+		// interactive mode
 		printf("overwrite '%s'? ", argvv[1]);
 		scanf("%s", &c);	
 		if (c!='y') {
@@ -46,7 +45,7 @@ if (access(argvv[1], F_OK|R_OK|W_OK) != -1) {
 	}
 
 	// update mode. compare times of source and dest files
-	if (u==1) {
+	if (u == 1) {
 		for (x=0; x<leftover; x++) {
 		stat(argvv[x], &fileStat);
 		raw[x]=fileStat.st_mtime;
@@ -100,9 +99,9 @@ int index;
 
 while ((optc = getopt_long (argc, argv, "ivu", long_options, (int *) 0)) !=EOF) {
 	switch (optc) {
-	   case 0:
+	    case 0:
 		break; 
-	   case 'i':
+	    case 'i':
 	        i=1;
 		break;
 	    case 'v':
@@ -111,7 +110,7 @@ while ((optc = getopt_long (argc, argv, "ivu", long_options, (int *) 0)) !=EOF) 
 	    case 'u':
 	        u=1;
 		break;
-	   case '?':
+	    case '?':
 		usage();
 		break;
 	    default:	
@@ -138,20 +137,17 @@ else if (argc>1) {
 	argv += optind;
 	leftover=index-optind;
 
-if (leftover==1) {
-	printf("cp: missing destination file operand after '%s'\n", argv[0]);
-	usage();
-}
-
-if (leftover==2) {
-	thefunc(argc, argv);
-}
-
-if (leftover>2) {
-	usage();
-}
+	if (leftover==1) {
+		printf("cp: missing destination file operand after '%s'\n", argv[0]);
+		usage();
+	}
+	if (leftover==2) {
+		thefunc(argc, argv);
+	}
+	if (leftover>2) {
+		usage();
+	}
 
 }
-
 
 }
