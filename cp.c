@@ -68,12 +68,11 @@ while ((file_in=read(sourcefile, &buffer, BUF_SIZE)) >0 ) {
 }
 
 // verbose mode
-if (v==1) {
+if (v == 1) {
 	printf("%s -> %s\n", argvv[0], argvv[1]);
 }
 
 close(sourcefile); close(destfile);
-
 exit(0);
 }
 
