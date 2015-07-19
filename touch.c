@@ -107,13 +107,12 @@ exit(1);
 main (int argc, char* argv[]) {
 int optc;
 int index;
-//opterr=0; // disables built-in getopt error messages ie - 'invalid option'
 
 while ((optc = getopt_long (argc, argv, "acm", long_options, (int *) 0)) !=EOF) {
 	switch (optc) {
-	   case 0:
+	    case 0:
 		break; 
-	   case 'a':
+	    case 'a':
 	        a=1;
 		break;
 	    case 'c':
@@ -122,7 +121,7 @@ while ((optc = getopt_long (argc, argv, "acm", long_options, (int *) 0)) !=EOF) 
 	    case 'm':
 	        m=1;
 		break;
-	   case '?':
+	    case '?':
 		usage();
 		break;
 	    default:	
@@ -146,17 +145,17 @@ else if (argc>1) {
 		;
 	}
 
-argc -= optind;
-argv += optind;
-leftover=index-optind;
+	argc -= optind;
+	argv += optind;
+	leftover=index-optind;
 
-if (leftover>=1) {
-	thefunc(argc, argv);
-}
+	if (leftover>=1) {
+		thefunc(argc, argv);
+	}
 
-if (leftover==0) {
-	usage();
-}
+	if (leftover==0) {
+		usage();
+	}
 
 }
 
