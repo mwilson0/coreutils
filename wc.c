@@ -4,7 +4,7 @@
 #include<string.h>
 #include<unistd.h>
 
-// wc clone 0.1. matthew wilson. july 2015. 
+// wc clone 0.1.2 matthew wilson. oct 2015. 
 // based on wc from GNU Coreutils 8.23. No warranty. 
 // License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
 
@@ -20,25 +20,25 @@ int counter=0;
 
 // printing function
 display() {
-if (l==1) {
+if (l == 1) {
 	printf("lines: %d ", lines);
-		if (w!=1 && m!=1) {
-			printf("\n");
-		}
+	if (w != 1 && m != 1) {
+		printf("\n");
+	}
 }
 
-if (w==1) {
+if (w == 1) {
 	printf("words: %d ", words);
-		if (m!=1) {
-			printf("\n");
-		}
+	if (m != 1) {
+		printf("\n");
+	}
 }
 
-if (m==1) {
+if (m == 1) {
 	printf("chars: %d\n", charz);
 }
 
-else if ((l==0 && w==0 && m==0) || (l==1 && w==1 && m==1)) {
+else if ((l == 0 && w == 0 && m == 0) || (l == 1 && w == 1 && m == 1)) {
 	printf("lines: %d words: %d chars: %d\n", lines, words, charz);
 }
 
@@ -46,43 +46,43 @@ linesT[counter]=lines; // array of totals[counter]
 wordsT[counter]=words;
 charzT[counter]=charz;
 
-if (leftover>1) { // reset the values
+if (leftover > 1) { // reset the values
 	lines=0;
 	words=0;
 	charz=0;
 }
 
 // when this counter matches number of argument vectors, print totals one-time only
-if (counter+1==leftover) {
+if (counter + 1 == leftover) {
 	int s;
 	int aaa=0;
 	int bbb=0;
 	int ccc=0;
 
-	for (s=0; s<counter+1; s++) {
+	for (s=0; s < counter + 1; s++) {
         	aaa=aaa+linesT[s];
         	bbb=bbb+wordsT[s];
         	ccc=ccc+charzT[s];
         }
 
-	if (leftover>1) {
+	if (leftover > 1) {
 		printf("total: ");
-        	if (l==1) {
+        	if (l == 1) {
         		printf("lines: %d ", aaa);
-                		if (w!=1 && m!=1) {
-                       			 printf("\n");
-                		}
+                	if (w != 1 && m != 1) {
+                       		 printf("\n");
+                	}
 		}	
-		if (w==1) {
+		if (w == 1) {
         		printf("words: %d ", bbb);
-                		if (m!=1) {
-                        		printf("\n");
-                		}
+                	if (m != 1) {
+                        	printf("\n");
+                	}
 		}
-		if (m==1) {
+		if (m == 1) {
         		printf("chars: %d\n", ccc);
 		}
-		else if ((l==0 && w==0 && m==0) || (l==1 && w==1 && m==1)) {
+		else if ((l == 0 && w == 0 && m == 0) || (l == 1 && w == 1 && m == 1)) {
 			printf("lines: %d words: %d chars: %d\n", aaa, bbb, ccc);
 		}		
 	}
@@ -91,16 +91,16 @@ if (counter+1==leftover) {
 counter++;
 }
 
-// counting from stdin
+// reading from stdin
 noargs() {
 int c;
 
-while ((c=getchar()) !=EOF) {
+while ((c=getchar()) != EOF) {
 	++charz;
-	if (c=='\n') {
+	if (c == '\n') {
 		++lines;
 	}
-	if (isspace(c) || c=='\t' || c=='\n') {
+	if (isspace(c) || c == '\t' || c == '\n') {
 		++words;
 	}
 }
@@ -108,14 +108,14 @@ display();
 exit(0);
 }
 
-thefunc(int argcc, char*argvv[]) {
+thefunc(int argcc, char* argvv[]) {
 int x;
 int y=0;
 char* items[999];
 // all exisiting files in items[y]
 
-for (x=0; x<leftover; x++) {
-	if (access(argvv[x], F_OK)==-1) {
+for (x=0; x < leftover; x++) {
+	if (access(argvv[x], F_OK) == -1) {
 		printf("wc: '%s': no such file\n", argvv[x]);
 		continue;
 	}
@@ -131,15 +131,15 @@ int c;
 FILE* fp;
 char* thefile;
 
-for (x=0; x<y; x++) {
+for (x=0; x < y; x++) {
 	thefile=strdup(items[x]);
 	if (!(fp=fopen(thefile, "r"))) {
 		printf("file error\n");
 	}
 	else {
-		while ((c=fgetc(fp))!=EOF) {
+		while ((c=fgetc(fp)) != EOF) {
 			++charz;
-			if (c=='\n') {
+			if (c == '\n') {
 				++lines;
 			}	
 			if (c == '\t' || c == '\n' || c == ' ') {
@@ -166,7 +166,7 @@ static struct option const long_options[] = {
 };
 
 usage() {
-printf("usage: wc file or stdin [-lwm]\n");
+printf("usage: wc [file] or stdin [-lwm]\n");
 exit(1);
 }
 
@@ -174,20 +174,20 @@ main (int argc, char* argv[]) {
 int optc;
 int index;
 
-while ((optc = getopt_long (argc, argv, "lwm", long_options, (int *) 0)) !=EOF) {
+while ((optc = getopt_long (argc, argv, "lwm", long_options, (int *) 0)) != EOF) {
 	switch (optc) {
-	   case 0:
-		break; 
-	   case 'l':
+	    case 0:
+	        break; 
+	    case 'l':
 	        l=1;
 		break;
 	    case 'w':
-	        w=1;
+		w=1;
 		break;
 	    case 'm':
-	        m=1;
+		m=1;
 		break;
-	   case '?':
+	    case '?':
 		usage();
 		break;
 	    default:	
@@ -201,11 +201,11 @@ if (flag_help) {
 	usage();
 }
 
-if (argc==1) {
+if (argc == 1) {
 	noargs(argc, argv);
 }
 
-else if (argc>1) {
+else if (argc > 1) {
 	for (index=optind; index<argc; index++) {
 		;
 	}
@@ -214,10 +214,10 @@ else if (argc>1) {
 	argv += optind;
 	leftover=index-optind;
 
-	if (leftover>=1) {
+	if (leftover >= 1) {
 		thefunc(argc, argv);
 	}
-	if (leftover==0) {
+	if (leftover == 0) {
 		noargs(argc, argv);
 	}
 }
