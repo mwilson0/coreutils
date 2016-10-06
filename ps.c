@@ -5,6 +5,8 @@
 #include<string.h>
 #include<stdlib.h>
 #include<ctype.h>
+#include<pwd.h>
+
 
 // ps clone. 
 
@@ -14,6 +16,8 @@ char* theprocdir = "/proc";
 
 DIR *pDir;
 struct dirent *pDirent;
+
+struct passwd *pwd;
 
 char* items[5096]; //files listed in proc
 int x=0;
@@ -64,17 +68,23 @@ char* file1 = "status";
 char* file2 = "cmdline";
 
 char embuff[99];
+char dispbuf[150];
+
 
 FILE* fp;
 
 int linecnt=0;
 char line[300];
-char* lineitems[40];
+char* lineitems[45];
+
+
+printf("  PID  NAME             USER          STATE\n");
+printf("-----  ---------------  ------------  ----------\n");
 
 for (i=0; i<x; i++) {
 	
 snprintf(embuff, sizeof embuff, "%s%s%s%s%s", theprocdir, "/", items[i], "/", file1);
-printf("%s\n", embuff);
+//printf("%s\n", embuff);
 
 //if (access(embuff, F_OK|R_OK) == -1) {
 //	printf("%s not found\n", embuff);
@@ -89,26 +99,45 @@ printf("%s\n", embuff);
 		linecnt++;
 	}
 
-	int a=0;
+	
+	//int a;
+	//for (a=0; a<8; a++) {
+	//	printf("%d: %s", a, lineitems[a]);
+	//}  	
 
-	for (a=0; a<6; a++) {
-		printf("%s", lineitems[a]);
-	}  	
+//snprintf(dispbuf, sizeof dispbuf, "%5s  %s%s", items[i], strtok(&lineitems[0][6], "\n"), &lineitems[1][6]);
+//printf("%s", dispbuf);
+	
+
+	printf("%5s  ", items[i]); // pid
+	printf("%-17s", strtok(&lineitems[0][6], "\n")); //progname
+	
 
 
+// copy the user line into newstring and tokenize at first space
+char newstring[30];
+char* delim = "\t";
+char* uuid;
+char* uname;
+
+strncpy(newstring, &lineitems[7][5], sizeof newstring - 1);
+// get the userID and covert to an int
+uuid = strtok(newstring, delim);
+int q = atoi(uuid);
+// now test it using pwd struct
+if (getpwuid(q) != NULL) { 
+	pwd=getpwuid(q); 
+	printf("%-13s", pwd->pw_name); //userID num
+}
+
+
+printf(" %s", &lineitems[1][7]); // state of process
 
 
 fclose(fp);
 linecnt=0;
 
 } 
-
-// and now search each text file for info i want
-
-
-
-
-
 
 
 }
