@@ -7,69 +7,62 @@
 #include<ctype.h>
 #include<pwd.h>
 
+int firstfunc();
 
 // ps clone. 
 
-
 struct stat fileStat;
 char* theprocdir = "/proc";
-
 DIR *pDir;
 struct dirent *pDirent;
-
 struct passwd *pwd;
-
 char* items[5096]; //files listed in proc
 int x=0;
 
-int main(int argc, char* argv[]) {
+
+int firstfunc() {
 
 // check and open dir
 stat(theprocdir, &fileStat);
 
 if (access(theprocdir, F_OK|R_OK) != -1) {
-	//printf("readable\n");
+	if (S_ISDIR (fileStat.st_mode)) {
+		pDir=opendir(theprocdir);
 
-if (S_ISDIR (fileStat.st_mode)) {
-	//printf("is a dir\n");
+		while ((pDirent=readdir(pDir)) != NULL) {
 
-pDir=opendir(theprocdir);
+			// first skip over . and .. and files that are not dirs
+			// need *before var name in isdigit to open only numbered dirs
+			if ( ( (! isdigit(*pDirent->d_name))  ||
+				strcmp(pDirent->d_name, ".") == 0 ||
+				strcmp(pDirent->d_name, "..") == 0 ||
+				pDirent->d_name[0] == '.') ||
+				(pDirent->d_type !=  DT_DIR) ) {
+					continue;
+			}
 
-while ((pDirent=readdir(pDir)) != NULL) {
-
-	// first skip over . and .. and files that are not dirs
-	// need *before var name in isdigit
-	if (( 
-		(! isdigit(*pDirent->d_name))  ||
-		strcmp(pDirent->d_name, ".") == 0 ||
-		strcmp(pDirent->d_name, "..") == 0 ||
-		pDirent->d_name[0] == '.') ||
-		(pDirent->d_type !=  DT_DIR) ) {
-			continue;
+			items[x] = malloc(strlen(pDirent->d_name) + 1);
+			strcpy(items[x], pDirent->d_name);
+			//printf("%d: %s\n", x, items[x]);
+			x++;
+		}	
+	closedir(pDir);
 	}
-
-	items[x]=malloc(strlen(pDirent->d_name)+1);
-	strcpy(items[x], pDirent->d_name);
-	//printf("%d: %s\n", x, items[x]);
-	x++;
 }
-closedir(pDir);
+else {
+	printf("error unable to read: %s\n", theprocdir);
+	exit(1);
 }
 
-}
+// open each dir, check for the files with the info i want
 
-// next would ideally:
-// open each dir, check for the files with the info i want, 
-// and list them if they are there
 int i;
-
-//char* dirslah = "/";
 char* file1 = "status";
 char* file2 = "cmdline";
 
-char embuff[99];
-char dispbuf[150];
-
+char embuf[99];
+char dispbuf[200];
+char* disparray[x];
 
 FILE* fp;
 
@@ -78,66 +71,68 @@ char line[300];
 char* lineitems[45];
 
 
-printf("  PID  NAME             USER          STATE\n");
-printf("-----  ---------------  ------------  ----------\n");
+printf("  PID  NAME              USER              STATE\n");
+printf("-----  ----------------  ------------      ------------\n");
 
-for (i=0; i<x; i++) {
-	
-snprintf(embuff, sizeof embuff, "%s%s%s%s%s", theprocdir, "/", items[i], "/", file1);
-//printf("%s\n", embuff);
+for (i = 0; i < x; i++) {
+	// construct the path: /proc/<PID>/status
+	snprintf(embuf, sizeof embuf, "%s%s%s%s%s", theprocdir, "/", items[i], "/", file1);
+	//printf("%s\n", embuf);
 
-//if (access(embuff, F_OK|R_OK) == -1) {
-//	printf("%s not found\n", embuff);
-//	}
+	//if (access(embff, F_OK|R_OK) == -1) {
+	//	printf("%s not found\n", embuf);
+	//	}
 
 	// open the file, count the lines
 
-	fp=fopen(embuff, "r");
+	fp = fopen(embuf, "r");
 	
 	while (fgets(line, sizeof line, fp) != NULL) {
 		lineitems[linecnt]=strdup(line);	
 		linecnt++;
 	}
 
-	
-	//int a;
-	//for (a=0; a<8; a++) {
-	//	printf("%d: %s", a, lineitems[a]);
-	//}  	
-
-//snprintf(dispbuf, sizeof dispbuf, "%5s  %s%s", items[i], strtok(&lineitems[0][6], "\n"), &lineitems[1][6]);
-//printf("%s", dispbuf);
+//	printf("%5s  ", items[i]); // pid
+//	printf("%-17s", strtok(&lineitems[0][6], "\n")); //progname: lineitem0,6th position
 	
 
-	printf("%5s  ", items[i]); // pid
-	printf("%-17s", strtok(&lineitems[0][6], "\n")); //progname
+	// copy the user line into newstring and tokenize at first space
+	char newstring[30];
+	char* delim = "\t";
+	char* uuid;
 	
 
-
-// copy the user line into newstring and tokenize at first space
-char newstring[30];
-char* delim = "\t";
-char* uuid;
-char* uname;
-
-strncpy(newstring, &lineitems[7][5], sizeof newstring - 1);
-// get the userID and covert to an int
-uuid = strtok(newstring, delim);
-int q = atoi(uuid);
-// now test it using pwd struct
-if (getpwuid(q) != NULL) { 
-	pwd=getpwuid(q); 
-	printf("%-13s", pwd->pw_name); //userID num
-}
+	strncpy(newstring, &lineitems[7][5], sizeof newstring - 1);
+	// get the userID and covert to an int
+	uuid = strtok(newstring, delim);
+	int q = atoi(uuid);
+	// now test it using pwd struct
+	if (getpwuid(q) != NULL) { 
+		pwd = getpwuid(q); 
+//		printf("%-13s", pwd->pw_name); //userID num
+	}
 
 
-printf(" %s", &lineitems[1][7]); // state of process
+//	printf(" %s", &lineitems[1][7]); // state of process
+
+	// going to try to put it all in an array
+
+	snprintf(dispbuf, sizeof dispbuf, "%5s  %-18s%-17s %s", items[i], strtok(&lineitems[0][6], "\n"), pwd->pw_name, &lineitems[1][7]);
+	disparray[i] = malloc(strlen(dispbuf) + 1);
+	strcpy(disparray[i], dispbuf);
+	printf("%s", disparray[i]);
 
 
-fclose(fp);
-linecnt=0;
+	fclose(fp);
+	linecnt=0;
+} // end of loop
 
-} 
+} // end of function
 
+int main(int argc, char* argv[]) {
+
+firstfunc();
+
+exit(0);
 
 }
