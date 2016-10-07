@@ -12,7 +12,7 @@ int firstfunc();
 // ps clone. 
 
 struct stat fileStat;
-char* theprocdir = "/proc";
+char* theprocdir = "./proc3";
 DIR *pDir;
 struct dirent *pDirent;
 struct passwd *pwd;
@@ -78,8 +78,8 @@ for (i = 0; i < x; i++) {
 	//printf("%s\n", embuf);
 
 	if (access(embuf, F_OK|R_OK) == -1) {
-		printf("%s not found, exiting\n", embuf);
-		exit(1);
+		printf("%5s not found\n", embuf);
+		continue;
 	}
 
 	else {
