@@ -12,7 +12,7 @@ int firstfunc();
 // ps clone. 
 
 struct stat fileStat;
-char* theprocdir = "./proc3";
+char* theprocdir = "/proc";
 DIR *pDir;
 struct dirent *pDirent;
 struct passwd *pwd;
@@ -81,7 +81,6 @@ for (i = 0; i < x; i++) {
 		printf("%5s not found\n", embuf);
 		continue;
 	}
-
 	else {
 
 	// open the file, count the lines
@@ -110,13 +109,11 @@ for (i = 0; i < x; i++) {
 	// now test it using pwd struct
 	if (getpwuid(q) != NULL) { 
 		pwd = getpwuid(q); 
-//		printf("%-13s", pwd->pw_name); //userID num
+		//printf("%-13s", pwd->pw_name); //userID num
 	}
+	//printf(" %s", &lineitems[1][7]); // state of process
 
-
-//	printf(" %s", &lineitems[1][7]); // state of process
-
-	// going to try to put it all in an array
+	// put everything into a single array and print it
 
 	snprintf(dispbuf, sizeof dispbuf, "%5s  %-18s%-13s %s", items[i], strtok(&lineitems[0][6], "\n"), pwd->pw_name, &lineitems[1][7]);
 	disparray[i] = malloc(strlen(dispbuf) + 1);
