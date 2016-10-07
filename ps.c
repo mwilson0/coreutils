@@ -19,7 +19,6 @@ struct passwd *pwd;
 char* items[5096]; //files listed in proc
 int x=0;
 
-
 int firstfunc() {
 
 // check and open dir
@@ -40,7 +39,6 @@ if (access(theprocdir, F_OK|R_OK) != -1) {
 				(pDirent->d_type !=  DT_DIR) ) {
 					continue;
 			}
-
 			items[x] = malloc(strlen(pDirent->d_name) + 1);
 			strcpy(items[x], pDirent->d_name);
 			//printf("%d: %s\n", x, items[x]);
@@ -71,17 +69,20 @@ char line[300];
 char* lineitems[45];
 
 
-printf("  PID  NAME              USER              STATE\n");
-printf("-----  ----------------  ------------      ------------\n");
+printf("  PID  NAME              USER          STATE\n");
+printf("-----  ----------------  ------------  ------------\n");
 
 for (i = 0; i < x; i++) {
 	// construct the path: /proc/<PID>/status
 	snprintf(embuf, sizeof embuf, "%s%s%s%s%s", theprocdir, "/", items[i], "/", file1);
 	//printf("%s\n", embuf);
 
-	//if (access(embff, F_OK|R_OK) == -1) {
-	//	printf("%s not found\n", embuf);
-	//	}
+	if (access(embuf, F_OK|R_OK) == -1) {
+		printf("%s not found, exiting\n", embuf);
+		exit(1);
+	}
+
+	else {
 
 	// open the file, count the lines
 
@@ -92,16 +93,16 @@ for (i = 0; i < x; i++) {
 		linecnt++;
 	}
 
-//	printf("%5s  ", items[i]); // pid
-//	printf("%-17s", strtok(&lineitems[0][6], "\n")); //progname: lineitem0,6th position
-	
+	if (! linecnt > 0) {
+		printf("%5s  unable to read file for process\n", items[i]);
+		continue;
+	}
 
 	// copy the user line into newstring and tokenize at first space
 	char newstring[30];
 	char* delim = "\t";
 	char* uuid;
 	
-
 	strncpy(newstring, &lineitems[7][5], sizeof newstring - 1);
 	// get the userID and covert to an int
 	uuid = strtok(newstring, delim);
@@ -117,14 +118,14 @@ for (i = 0; i < x; i++) {
 
 	// going to try to put it all in an array
 
-	snprintf(dispbuf, sizeof dispbuf, "%5s  %-18s%-17s %s", items[i], strtok(&lineitems[0][6], "\n"), pwd->pw_name, &lineitems[1][7]);
+	snprintf(dispbuf, sizeof dispbuf, "%5s  %-18s%-13s %s", items[i], strtok(&lineitems[0][6], "\n"), pwd->pw_name, &lineitems[1][7]);
 	disparray[i] = malloc(strlen(dispbuf) + 1);
 	strcpy(disparray[i], dispbuf);
 	printf("%s", disparray[i]);
-
-
 	fclose(fp);
 	linecnt=0;
+	}
+
 } // end of loop
 
 } // end of function
@@ -134,5 +135,4 @@ int main(int argc, char* argv[]) {
 firstfunc();
 
 exit(0);
-
 }
