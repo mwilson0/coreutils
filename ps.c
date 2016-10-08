@@ -18,6 +18,7 @@ struct dirent *pDirent;
 struct passwd *pwd;
 char* items[5096]; //files listed in proc
 int x=0;
+char errcode[33];
 
 int firstfunc() {
 
@@ -48,8 +49,8 @@ if (access(theprocdir, F_OK|R_OK) != -1) {
 	}
 }
 else {
-	printf("error unable to read: %s\n", theprocdir);
-	exit(1);
+	snprintf(errcode, sizeof errcode, "error: unable to read: %s", theprocdir);
+	return 1;
 }
 
 // open each dir, check for the files with the info i want
@@ -68,7 +69,6 @@ int linecnt=0;
 char line[300];
 char* lineitems[45];
 
-
 printf("  PID  NAME              USER          STATE\n");
 printf("-----  ----------------  ------------  ------------\n");
 
@@ -78,58 +78,59 @@ for (i = 0; i < x; i++) {
 	//printf("%s\n", embuf);
 
 	if (access(embuf, F_OK|R_OK) == -1) {
-		printf("%5s not found\n", embuf);
+		printf("%5s: unable to read file for process\n", embuf);
 		continue;
 	}
 	else {
-
-	// open the file, count the lines
-
-	fp = fopen(embuf, "r");
+		// open the file, count the lines
+		fp = fopen(embuf, "r");
 	
-	while (fgets(line, sizeof line, fp) != NULL) {
-		lineitems[linecnt]=strdup(line);	
-		linecnt++;
-	}
+		while (fgets(line, sizeof line, fp) != NULL) {
+			lineitems[linecnt]=strdup(line);	
+			linecnt++;
+		}
 
-	if (! linecnt > 0) {
-		printf("%5s  unable to read file for process\n", items[i]);
-		continue;
-	}
+		if (! linecnt > 0) {
+			printf("%5s: unable to read file for process\n", items[i]);
+			continue;
+		}
 
-	// copy the user line into newstring and tokenize at first space
-	char newstring[30];
-	char* delim = "\t";
-	char* uuid;
+		// copy the user line into newstring and tokenize at first space
+		char newstring[30];
+		char* delim = "\t";
+		char* uuid;
 	
-	strncpy(newstring, &lineitems[7][5], sizeof newstring - 1);
-	// get the userID and covert to an int
-	uuid = strtok(newstring, delim);
-	int q = atoi(uuid);
-	// now test it using pwd struct
-	if (getpwuid(q) != NULL) { 
-		pwd = getpwuid(q); 
-		//printf("%-13s", pwd->pw_name); //userID num
+		strncpy(newstring, &lineitems[7][5], sizeof newstring - 1);
+		// get the userID and covert to an int
+		uuid = strtok(newstring, delim);
+		int q = atoi(uuid);
+	
+		// now test it using pwd struct
+		if (getpwuid(q) != NULL) { 
+			pwd = getpwuid(q); 
+			//printf("%-13s", pwd->pw_name); //userID num
+		}
+		//printf(" %s", &lineitems[1][7]); // state of process
+
+		// put everything into a single array and print it
+
+		snprintf(dispbuf, sizeof dispbuf, "%5s  %-18s%-13s %s", items[i], strtok(&lineitems[0][6], "\n"), pwd->pw_name, &lineitems[1][7]);
+		disparray[i] = malloc(strlen(dispbuf) + 1);
+		strcpy(disparray[i], dispbuf);
+		printf("%s", disparray[i]);
+		fclose(fp);
+		linecnt=0;
 	}
-	//printf(" %s", &lineitems[1][7]); // state of process
-
-	// put everything into a single array and print it
-
-	snprintf(dispbuf, sizeof dispbuf, "%5s  %-18s%-13s %s", items[i], strtok(&lineitems[0][6], "\n"), pwd->pw_name, &lineitems[1][7]);
-	disparray[i] = malloc(strlen(dispbuf) + 1);
-	strcpy(disparray[i], dispbuf);
-	printf("%s", disparray[i]);
-	fclose(fp);
-	linecnt=0;
-	}
-
 } // end of loop
-
+return 0;
 } // end of function
 
 int main(int argc, char* argv[]) {
-
-firstfunc();
-
-exit(0);
+	if (firstfunc() != 0) {
+		printf("%s\n", errcode);
+		exit(1);
+	}
+	else {
+		exit(0);
+	}
 }
