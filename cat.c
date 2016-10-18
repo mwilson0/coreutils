@@ -4,16 +4,17 @@
 #include<string.h>
 #include<unistd.h>
 #include<errno.h>
+#include<sys/stat.h>
 
-// cat clone 0.2 matthew wilson. oct 2016. 
+// cat clone 0.2.1 matthew wilson. oct 2016. 
 // based on cat from GNU Coreutils 8.23. 
 // currently accepts files on command line to cat. stdin in the future.
 // License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
 
-/* guide to ops: from main, to vectorchecker, then to charcatcher if reading from stdin or to filechecker if checking on file. when in filechecker, any non-exist file will cause a permanent errcode to return a non-zero to main. in filechecker, it will open THEFUNC to actually read lines from files.*/
+/* guide to ops: from main, to vectorchecker, then to charcatcher if reading from stdin or to filechecker if checking on file. when in filechecker, any non-exist file (or any existing directory) will cause a permanent errcode to return a non-zero to main. in filechecker, it will open filereader to actually read lines from files.*/
 
 static int errcode = 0;
-int n=0, e=0, b=0;
+int n = 0, e = 0, b = 0;
 
 charcatcher() {
 	int c;
@@ -43,16 +44,22 @@ vectorchecker(int argc, char*argv[]) {
 }
 
 filechecker(int argc, char*argv[], int x) {
-	if ((access(argv[x], F_OK|R_OK) == -1)) {
+	struct stat fileStat;
+	if (access(argv[x], F_OK|R_OK) == -1) { 
 		fprintf(stderr, "%s: %s\n", argv[x], strerror(errno));
-		errcode = -1; // return -1 to vectorchecker
+		errcode = -1;
+	}
+	// if file exists And is directory, throw the error
+	else if ((stat(argv[x], &fileStat) == 0) && (S_ISDIR(fileStat.st_mode))) {
+		printf("error: %s is a directory\n", argv[x]);	
+		errcode = -1;
 	}
 	else {
-		thefunc(argv, x);	
+		filereader(argv, x);	
 	}
 }
 
-thefunc(char*argv[], int x) {
+filereader(char*argv[], int x) {
 	char* items[999];
 	int linecnt=0; // lines of each file
 	int metalinecnt=1; // total lines of many files
