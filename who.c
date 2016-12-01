@@ -21,6 +21,8 @@ ut_host = host user logged in from
 */
 
 int a = 0, b = 0, q = 0, r = 0, u = 0;
+char* program_name;
+static int fail = 0;
 
 int thefunc(int argc, char*argv[]) {
 	int usercount = 0;
@@ -119,20 +121,25 @@ static int flag_help;
 static struct option const long_options[] = 
 {
 	{"all", no_argument, 0, 'a'}, 
-    	{"boottime", no_argument, 0, 'b'}, 
-    	{"numandusers", no_argument, 0, 'q'}, 
+    	{"boot", no_argument, 0, 'b'}, 
+    	{"count", no_argument, 0, 'q'}, 
     	{"runlevel", no_argument, 0, 'r'}, 
-    	{"usersloggedin", no_argument, 0, 'u'},
+    	{"users", no_argument, 0, 'u'},
 	{"help", no_argument, &flag_help, 1}, 
     	{0, 0, 0, 0}			
 };
 
 void usage() {
-	printf("usage: 'who [-abqru]'\n");
-	exit(EXIT_FAILURE);
+	fprintf(stderr, "Usage: %s [-a | --all] [-b | --boot] [-q | --count] [-r | --runlevel] [-u | --users] [--help]\n", program_name);
+	
+	if ((flag_help) && (fail != 1))
+		exit(EXIT_SUCCESS);
+	else
+		exit(EXIT_FAILURE);
 }
 
 int main (int argc, char* argv[]) {
+	program_name = argv[0];
 	int optc;
 	int index;
 
@@ -156,7 +163,8 @@ int main (int argc, char* argv[]) {
 	            	    u = 1;
 		    	    break;
 	    		case '?':
-		            usage();
+		            fail = 1;
+			    usage();
 		    	    break;
 	    		default:	
 		    	    usage();
