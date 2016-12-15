@@ -6,6 +6,7 @@
 #include<errno.h>
 #include<sys/stat.h>
 #include<unistd.h>
+#include<dirent.h>
 
 /* rm clone. (c) 2016 matthew wilson
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
@@ -19,7 +20,8 @@ char* program_name;
 
 int file_checker(int argc, char* argv[]) {
 	int x;
-	
+	DIR *pDir;
+	struct dirent *pDirent; //structure has file info(d_name[])
 	struct stat sb;
 
 	for (x = 0; x < argc; x++) {
@@ -44,11 +46,53 @@ int file_checker(int argc, char* argv[]) {
 					}
 				}
 			}
-			
+		
 			else if(S_ISDIR(sb.st_mode)) {
 				// how to handle recursive? 
 				// likely open dir and delete files, then delete dir
 				printf("%d: %s - directory\n", x, argv[x]);
+				
+				// -r flag must be set to delete dir		
+				if (r != 1) {
+					printf("%s: cannot remove '%s': is a directory\n", program_name, argv[x]);
+				}
+				// walk inside directory
+				else {
+					int cnt = 0;
+					strcat(argv[x], "/");
+					pDir = opendir(argv[x]);
+                			char* items[999];
+					
+					while ((pDirent = readdir(pDir)) != NULL) {
+						if (strcmp(pDirent->d_name, ".") == 0 || strcmp(pDirent->d_name, "..") == 0 ||
+     						pDirent->d_name[0] == '.' ) {
+               						continue; // skips over . and .. listings
+                        			}
+						// pull filename out of struct
+                				items[cnt] = malloc(strlen(pDirent->d_name) + 1);
+				                strcpy(items[cnt], pDirent->d_name);
+				                cnt++;
+			                }
+					
+					printf("items in dir: %d\n", cnt);
+					
+					// delete now, or walk deeper and delete invididual files
+					// see ntfw
+					if (cnt == 0) {
+						closedir(pDir);
+						printf("good to delete dir now\n");			
+						
+						if (rmdir(argv[x]) != 0) {
+							printf("%s: %s\n", argv[x], strerror(errno));
+						}
+					}
+					// check for files or directories again
+					else {
+						;	
+					}
+
+				}	
+
 			}
 			else {
 				printf("%d: %s - something else\n", x, argv[x]);
