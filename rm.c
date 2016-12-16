@@ -52,9 +52,7 @@ int file_checker(int argc, char* argv[]) {
 	struct stat sb;
 
 	for (x = 0; x < argc; x++) {
-	
-		// file exists
-		//if (access(argv[x], F_OK|W_OK) == 0) {
+			// test the argv[x]: is it file or dir?
 			stat(argv[x], &sb);
 			if (S_ISREG(sb.st_mode)) {
 				printf("%d: %s - regular file\n", x, argv[x]);
@@ -65,12 +63,11 @@ int file_checker(int argc, char* argv[]) {
 						printf("removed file: %s\n", argv[x]);
 					}
 				}
-				// error out otherwise	
+				// error out otherwise, likely perms problem	
 				else {
-					// but don't print message if using --force
-					if (f != 1) {
-						printf("!%s: %s\n", argv[x], strerror(errno));
-					}
+					// in this event -f cannot suppress messages
+					printf("!%s: %s: %s\n", program_name, argv[x], strerror(errno));
+					fail = 1;	
 				}
 			}
 			else if(S_ISDIR(sb.st_mode)) {
@@ -83,7 +80,7 @@ int file_checker(int argc, char* argv[]) {
 				else {
 					// next test for access
 					if (access(argv[x], F_OK|W_OK) != 0) {
-						printf("!! %s %s\n", argv[x], strerror(errno));
+						printf("!!%s: %s: %s\n", program_name, argv[x], strerror(errno));
 						//fail = 1;
 					}
 					// walk inside directory
@@ -131,22 +128,14 @@ int file_checker(int argc, char* argv[]) {
 			else {
 				//printf("%d: %s - something else\n", x, argv[x]);
 				if (stat != 0 && f != 1) {
-					printf(":)%s %s\n", argv[x], strerror(errno));
+					printf(":) %s: %s %s\n", program_name, argv[x], strerror(errno));
 				}
 				if (f != 1) {
+					printf("ha\n");
 					fail = 1;
 				}
 			
 			}
-		//}
-		
-		/*else {
-			if (f != 1) {
-				printf("%s: %s\n", argv[x], strerror(errno));
-				//printf("%d: %s - file does not exist\n", x, argv[x]);
-				fail = 1;
-			}
-		}*/
 	}
 	printf("yo\n");
 	return(0);
@@ -175,7 +164,6 @@ int main (int argc, char* argv[]) {
 	int index;
 	int optc;
 	int x;
-	
 
 	while ((optc = getopt_long (argc, argv, "rfv", long_options, (int *) 0)) != EOF) {
 		switch (optc) {
@@ -211,6 +199,15 @@ int main (int argc, char* argv[]) {
 	argc -= optind;
 	argv += optind;
 
+	if (argc == 0) {
+		if (f != 1) {
+			printf("%s: missing operand\n", program_name);
+			exit(EXIT_FAILURE);
+		}
+		else {
+			exit(EXIT_SUCCESS);
+		}
+	}
 	if (file_checker(argc, argv) == 0 && fail != 1) {
 		exit(EXIT_SUCCESS);
 	}
