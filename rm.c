@@ -33,16 +33,16 @@ int rm(const char *path, const struct stat *s, int flag, struct FTW *f) {
 		    rm_func = rmdir;
     	}
     
-	if(status = rm_func(path), status != 0 ) {
-        printf("status %d\n", status);
-	perror(path);
-	//printf("error: %s\n", strerror(errno));
-    	}
-    	else {
-		printf("item deleted: %s\n", path);
+	if (status = rm_func(path), status != 0) {
+		printf("%s: unable to remove file: %s\n", program_name, path);	
+		fail = 1;
 	}
-    
-	return status;
+	else {
+		if (v == 1) {
+			printf("%s: removed file: %s\n", program_name, path);
+		}
+	}
+	return 0;
 }
 
 int file_checker(int argc, char* argv[]) {
@@ -55,23 +55,23 @@ int file_checker(int argc, char* argv[]) {
 			// test the argv[x]: is it file or dir?
 			stat(argv[x], &sb);
 			if (S_ISREG(sb.st_mode)) {
-				printf("%d: %s - regular file\n", x, argv[x]);
+				//printf("%d: %s - regular file\n", x, argv[x]);
 				// delete it
 				if (unlink(argv[x]) == 0) {
 					// verbose
 					if (v == 1) {
-						printf("removed file: %s\n", argv[x]);
+						printf("%s: removed file: %s\n", program_name, argv[x]);
 					}
 				}
 				// error out otherwise, likely perms problem	
 				else {
 					// in this event -f cannot suppress messages
-					printf("!%s: %s: %s\n", program_name, argv[x], strerror(errno));
+					printf(":( %d - %s: %s: %s\n", errno, program_name, argv[x], strerror(errno));
 					fail = 1;	
 				}
 			}
 			else if(S_ISDIR(sb.st_mode)) {
-				printf("%d: %s - directory\n", x, argv[x]);
+				//printf("%d: %s - directory\n", x, argv[x]);
 				// -r flag must be set to delete dir		
 				if (r != 1) {
 					printf("%s: cannot remove '%s': is a directory\n", program_name, argv[x]);
@@ -80,8 +80,10 @@ int file_checker(int argc, char* argv[]) {
 				else {
 					// next test for access
 					if (access(argv[x], F_OK|W_OK) != 0) {
-						printf("!!%s: %s: %s\n", program_name, argv[x], strerror(errno));
-						//fail = 1;
+						if (f != 1) {
+							printf(">) %s: %s: %s\n", program_name, argv[x], strerror(errno));
+							fail = 1;
+						}
 					}
 					// walk inside directory
 					else {
@@ -100,27 +102,21 @@ int file_checker(int argc, char* argv[]) {
 				                	strcpy(items[cnt], pDirent->d_name);
 				                	cnt++;
 			                	}
-					
-						printf("items in dir: %d\n", cnt);
-					
+						//printf("items in dir: %d\n", cnt);
 						// delete now, or walk deeper and delete invididual files
 						if (cnt == 0) {
 							closedir(pDir);
-							printf("good to delete dir now\n");			
-						
+
 							if (rmdir(argv[x]) != 0) {
 								if (f != 1) {
-									printf("%s: %s\n", argv[x], strerror(errno));
+									printf("%s: %s: %s\n", program_name, argv[x], strerror(errno));
 									fail = 1;
 								}
 							}
 						}
 						// delete recursively otherwise
 						else {
-							if ((nftw(argv[x], rm, 10, FTW_DEPTH)) != 0) {
-								printf("unable to delete: %s\n", argv[x]);
-								//fail = 1;
-							}
+							nftw(argv[x], rm, 10, FTW_DEPTH);
 						}
 					}
 				}
@@ -128,16 +124,13 @@ int file_checker(int argc, char* argv[]) {
 			else {
 				//printf("%d: %s - something else\n", x, argv[x]);
 				if (stat != 0 && f != 1) {
-					printf(":) %s: %s %s\n", program_name, argv[x], strerror(errno));
+					printf("!-!: %s: unable to remove file: %s\n", program_name, argv[x]);
 				}
 				if (f != 1) {
-					printf("ha\n");
 					fail = 1;
 				}
-			
 			}
 	}
-	printf("yo\n");
 	return(0);
 }
 
