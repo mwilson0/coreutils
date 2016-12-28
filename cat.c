@@ -6,24 +6,30 @@
 #include<errno.h>
 #include<sys/stat.h>
 
-// cat clone 0.2.1 matthew wilson. oct 2016. 
+// cat clone 0.2.2 matthew wilson. dec 2016. 
 // based on cat from GNU Coreutils 8.23. 
-// currently accepts files on command line to cat. stdin in the future.
 // License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
 
-/* guide to ops: from main, to vectorchecker, then to charcatcher if reading from stdin or to filechecker if checking on file. when in filechecker, any non-exist file (or any existing directory) will cause a permanent errcode to return a non-zero to main. in filechecker, it will open filereader to actually read lines from files.*/
+/* guide to ops: from main, to vectorchecker, then to charcatcher if reading from stdin or to filechecker if checking on file. when in filechecker, any non-exist file (or any existing directory) will cause a permanent errcode to return a non-zero to main. in filechecker, it will open filereader to actually read lines from files. */
 
+void charcatcher();
+void filereader(); 
+void filechecker();
+int vectorchecker();
+void usage();
+
+char* program_name;
 static int errcode = 0;
 int n = 0, e = 0, b = 0;
 
-charcatcher() {
+void charcatcher(void) {
 	int c;
 	while ((c = getchar()) != EOF) {
 		putchar(c);
 	}
 }
 
-vectorchecker(int argc, char*argv[]) {
+int vectorchecker(int argc, char*argv[]) {
 	int x;
 	for (x = 0; x < argc; x++) {
 		if ((strcmp(argv[x], "-") == 0)) {
@@ -43,15 +49,16 @@ vectorchecker(int argc, char*argv[]) {
 	}
 }
 
-filechecker(int argc, char*argv[], int x) {
+void filechecker(int argc, char*argv[], int x) {
 	struct stat fileStat;
 	if (access(argv[x], F_OK|R_OK) == -1) { 
-		fprintf(stderr, "%s: %s\n", argv[x], strerror(errno));
+		fprintf(stderr, "%s: %s: %s\n", program_name, argv[x], strerror(errno));
 		errcode = -1;
 	}
 	// if file exists And is directory, throw the error
 	else if ((stat(argv[x], &fileStat) == 0) && (S_ISDIR(fileStat.st_mode))) {
-		printf("error: %s is a directory\n", argv[x]);	
+		//printf("error: %s is a directory\n", argv[x]);	
+		fprintf(stderr, "%s: %s: is a directory\n", program_name, argv[x]);
 		errcode = -1;
 	}
 	else {
@@ -59,14 +66,13 @@ filechecker(int argc, char*argv[], int x) {
 	}
 }
 
-filereader(char*argv[], int x) {
-	char* items[999];
-	int linecnt=0; // lines of each file
-	int metalinecnt=1; // total lines of many files
+void filereader(char*argv[], int x) {
+	int linecnt = 0; // lines of each file
+	int metalinecnt = 1; // total lines of many files
 	FILE *inputfile;
 	char *lineitems[9999];
 	char line[9999];
-	int blnk=0;
+	int blnk = 0;
 
 	inputfile = fopen(argv[x], "r");
 
@@ -83,7 +89,7 @@ filereader(char*argv[], int x) {
 			}
 		}
 		//remove newline
-		lineitems[linecnt][strlen(lineitems[linecnt])-1] = '\0';
+		lineitems[linecnt][strlen(lineitems[linecnt]) - 1] = '\0';
 		if (b == 1 && e == 1) {
 			printf("%6d  %s$\n", metalinecnt, lineitems[linecnt]); 
 		}
@@ -109,16 +115,18 @@ static int flag_help;
 
 static struct option const long_options[] = 
 {
-    	{"numlines", no_argument, 0, 'n'}, 
-    	{"dollarsign", no_argument, 0, 'E'}, 
-    	{"nonemptylines", no_argument, 0, 'b'},
+    	{"number", no_argument, 0, 'n'}, 
+    	{"show-ends", no_argument, 0, 'E'}, 
+    	{"number-nonblank", no_argument, 0, 'b'},
 	{"help", no_argument, &flag_help, 1}, 
     	{0, 0, 0, 0}			
 };
 
-usage() {
-	printf("usage: 'cat file1 file2 [-nEb]'\n");
-	if (flag_help == 1) {
+void usage(void) {
+	printf("concatenate files and print on standard output!\n");
+	printf("%s usage: 'cat file1 file2 ... [-nEb]'\n", program_name);
+	printf("[-n | --number] (number all output lines)\n[-E | --show-ends] (display dollar sign at end of each line)\n[-b | --number-nonblank] (number only non-empty output lines)\n");
+	if (flag_help) {
 		exit(EXIT_SUCCESS);
 	}
 	else { 
@@ -126,7 +134,8 @@ usage() {
 	}
 }
 
-main (int argc, char* argv[]) {
+int main (int argc, char* argv[]) {
+	program_name = argv[0];
 	int optc;
 	int index;
 
@@ -135,13 +144,13 @@ main (int argc, char* argv[]) {
 	    		case 0:
 		    	    break; 
 	    		case 'n':
-		    	    n=1;
+		    	    n = 1;
 		    	    break;
 	    		case 'E':
-	            	    e=1;
+	            	    e = 1;
 		    	    break;
 	    		case 'b':
-		    	    b=1;
+		    	    b = 1;
 		    	    break;	
 	    		case '?':
 		    	    usage();
@@ -166,7 +175,6 @@ main (int argc, char* argv[]) {
 	if (argc == 0) {
 		charcatcher();
 	}
-
 	else if (argc >= 1) {
 		if (vectorchecker(argc, argv) != 0) {
 			exit(EXIT_FAILURE);
